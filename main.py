@@ -1,41 +1,36 @@
-# Импорт всех классов
+import kivy
 from kivy.app import App
-from kivy.uix.label import Label
-from kivy.uix.textinput import TextInput
+from kivy.lang import Builder
+from kivy.clock import Clock
 from kivy.uix.boxlayout import BoxLayout
-from kivy.core.window import Window
+from kivy.uix.screenmanager import ScreenManager, Screen
 
-# Глобальные настройки
-Window.size = (250, 200)
-Window.clearcolor = (255 / 255, 186 / 255, 3 / 255, 1)
-Window.title = "ТРЕК:"
+Builder.load_string('''
+<ScreenTwo>:
+    text_in: text_in
+    memberStatus: memberStatus
+    BoxLayout:
+        orientation: 'vertical'
+        Label: 
+            id: memberStatus
+        TextInput:
+            id: text_in
+            multiline: False
+            on_text_validate:
+                root.process_barcode()
+    ''')
+
+class ScreenTwo(Screen):
+    def process_barcode(self):
+        self.memberStatus.text = self.text_in.text
+        self.text_in.text = ""
+        Clock.schedule_once(lambda *args: setattr(self.text_in, 'focus', True))
 
 class MyApp(App):
-
-    # Создание всех виджетов (объектов)
-    def __init__(self):
-        super().__init__()
-        self.label = Label(text='СКАНЕР')
-        self.treck = Label(text='Трек')
-        self.input_data = TextInput(hint_text='Сканируй:', multiline=False)
-        self.input_data.bind(text=self.on_text)  # Добавляем обработчик события
-
-    # Получаем данные и производит их конвертацию
-    def on_text(self, *args):
-        data = self.input_data.text
-        self.treck.text = 'Трек: ' + str(data)
-
-    # Основной метод для построения программы
     def build(self):
-        # Все объекты будем помещать в один общий слой
-        box = BoxLayout(orientation='vertical')
-        box.add_widget(self.label)
-        box.add_widget(self.input_data)
-        box.add_widget(self.treck)
+        sm = ScreenManager()
+        sm.add_widget(ScreenTwo(name="screen_two"))
+        return sm
 
-        return box
-
-
-# Запуск проекта
-if __name__ == "__main__":
+if __name__ == '__main__':
     MyApp().run()
